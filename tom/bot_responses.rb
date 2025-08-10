@@ -5,14 +5,33 @@ Dotenv.load
 
 client = OpenAI::Client.new(access_token: ENV['OPENAI_API_KEY'])
 
-response = client.chat.completions.create(
-    model: "gpt-4.1-nano",
-    messages: [
-        { role: "system", content: "You are a helpful assistant." },
-        { role: "user", content: "Hello, how do I use OpenAI with Ruby?" }
-    ]
-    temperature: 0.7,
-    max_tokens: 500,
-)
+system_prompt = File.read("prompt.txt").strip
 
-puts response.dig("choices", 0, "message", "content")
+conversation = [
+    { role: "system", content: system_prompt },
+    { role: "assistant", content: "What's up?" }
+]
+
+def openai_response(conversation)
+    response = client.chat.completions.create(
+        model: "gpt-4.1-nano",
+        messages: conversation
+        temperature: 0.7,
+        max_tokens: 500,
+    )
+
+    return response
+end
+
+def get_bot_response(user_message)
+    user_message.downcase
+    user_message = user_message.sub("/tom", "")
+
+    conversation.push({"role": "user", "content": user_message})
+
+    response = openai_response(conversation)
+
+    oai_reply = response.dig("choices", 0, "message", "content")
+
+    return oai_reply
+end
