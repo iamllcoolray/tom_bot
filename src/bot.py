@@ -44,7 +44,7 @@ async def dan(
 ):
     try:
         print(f"/tom called in {ctx.channel} by {ctx.author} with message: {message}")
-        response = get_bot_response(user_message=message)
+        response = get_bot_response(user_message=message, isOpenAI=False)
         await ctx.respond(f"{ctx.author.mention} {response}")
     except Exception as e:
         print(f"Error: {e}")

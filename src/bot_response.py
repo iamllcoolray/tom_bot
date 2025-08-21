@@ -3,10 +3,13 @@ from typing import List, Dict
 import os
 
 from dotenv import load_dotenv
-import openai
-from openai.types.chat import ChatCompletion
+from openai import OpenAI, ChatCompletion
+from groq import Groq
 
-openai.api_key = os.getenv("OPENAI_API_KEY")
+load_dotenv()
+
+openai = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+groq = Groq(api_key=os.getenv("GROQ_API_KEY"))
 
 system_prompt = ""
 
@@ -26,15 +29,26 @@ def oai_response(conversation: List[Dict[str, str]]) -> ChatCompletion:
                 max_tokens=500,
             )
 
-def get_bot_response(user_message: str) -> str:
+def groq_response(conversation: List[Dict[str, str]]) -> ChatCompletion:
+    return groq.chat.completions.create(
+                model="llama-3.1-8b-instant",
+                messages=conversation,
+                temperature=0.7,
+                max_tokens=500,
+            )
+
+def get_bot_response(user_message: str, isOpenAI: bool = False) -> str:
     lowered: str = user_message.lower()
     
     lowered = lowered.replace("/tom", "")
     
     conversation.append({"role": "user", "content": lowered})
     
-    response = oai_response(conversation)
+    if isOpenAI:
+        response = oai_response(conversation)
+    else:
+        response = groq_response(conversation)
 
-    oai_reply = response.choices[0].message.content
+    reply = response.choices[0].message.content
     
-    return oai_reply
+    return reply
